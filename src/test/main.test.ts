@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { initApp } from '../main';
 import { validateAndNormalizeTime } from '../utils';
@@ -6,7 +7,7 @@ import { parseParticipantsCSV, parseEventsCSV } from '../parsecsv';
 describe('Main application', () => {
 	beforeEach(() => {
 		// Set up the DOM for testing
-		document.body.innerHTML = '<div id="app"></div>';
+		document.body.innerHTML = `<div id="app"></div>`;
 	});
 	
 	it('should initialize the app with both file upload sections', () => {

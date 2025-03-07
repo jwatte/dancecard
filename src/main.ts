@@ -792,7 +792,7 @@ export const initApp = () => {
 			</div>
 		</div>
 	`;
-	
+
 	// Add event listeners to file inputs
 	const participantsInput = document.getElementById('participants-upload');
 	if (participantsInput) {
