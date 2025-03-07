@@ -20,5 +20,6 @@
 - **Types**: Use TypeScript types for all variables, parameters, and return values
 - **Error Handling**: Use try/catch for async operations, proper error propagation
 - **Comments**: JSDoc format for function documentation, explain "why" not "what"
+- **Functions**: Use free functions for complex multi-line event handlers; short, single-line lambdas are acceptable
 
 Feel free to customize this file as the project evolves.
