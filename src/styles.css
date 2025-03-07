@@ -126,7 +126,7 @@ input[type="file"] + label:active {
 .data-summary {
 	margin-bottom: 15px;
 	padding: 8px 12px;
-	background-color: #e8f4f8;
+	background-color: #D0F0D4;
 	border-radius: 4px;
 	font-weight: 500;
 	position: sticky;
@@ -137,7 +137,7 @@ input[type="file"] + label:active {
 
 .data-summary strong {
 	font-size: 1.1em;
-	color: #0066cc;
+	color: #2C8F30;
 }
 
 .grid-container {
