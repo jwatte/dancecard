@@ -229,6 +229,15 @@ input[type="file"] + label:active {
 	.grid-container, .grid-container-3col {
 		grid-template-columns: 1fr;
 	}
+	
+	/* Remove height restrictions on tables for mobile - using !important to override specific styles */
+	.data-list, 
+	.time-schedule,
+	.dance-card-results .table-container,
+	.missed-topics-container .table-container {
+		max-height: none !important;
+		overflow-y: visible !important;
+	}
 }
 
 /* Dance card styles */
