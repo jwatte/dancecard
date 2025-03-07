@@ -1,55 +1,32 @@
 // Main entry point for the Dance Card application
+import './styles.css';
+import { 
+	FileInputEvent, 
+	Participant, 
+	Event, 
+	RoomCapacity, 
+	DanceCardAssignment, 
+	ParticipantDanceCard, 
+	DanceCardData 
+} from './types';
 
-// Define the proper event type for file inputs
-// @ts-ignore in some places to support browser API compatibility
-type FileInputEvent = {
-    target: HTMLInputElement;
-}
+import {
+	validateAndNormalizeTime,
+	shuffleArray,
+	generateDanceCardsCSV
+} from './utils';
 
-// Define types for our data
-type Participant = {
-	id: string;
-	name: string;
-};
-
-type Event = {
-	time: string;
-	topic: string;
-	room: string;
-};
-
-type RoomCapacity = {
-	room: string;
-	capacity: number;
-};
-
-// Type for dance card assignment
-type DanceCardAssignment = {
-	time: string;
-	room: string;
-	topic: string;
-} | 'FREE';
-
-// Type for participant dance card
-type ParticipantDanceCard = {
-	participant: Participant;
-	assignments: Map<string, DanceCardAssignment>; // time -> assignment
-	missedTopics: Set<string>; // topics that could not be visited
-};
+import {
+	parseParticipantsCSV,
+	parseEventsCSV,
+	parseRoomCapacityCSV,
+	checkCsvRowLimit
+} from './parsecsv';
 
 // Global arrays to store the parsed CSV data
 const participants: Participant[] = [];
 const events: Event[] = [];
 const roomCapacities: RoomCapacity[] = [];
-
-// Data structure for managing dance cards
-type DanceCardData = {
-	// Maps from room → time → participant[]
-	roomsTimesParticipants: Map<string, Map<string, Participant[]>>;
-	
-	// Maps from participant ID → time → room[]
-	participantsTimesRooms: Map<string, Map<string, string[]>>;
-};
 
 // Initialize empty data structure
 const danceCardData: DanceCardData = {
@@ -76,192 +53,6 @@ const updateDanceCardButton = () => {
 		danceCardButton.classList.remove('button-enabled');
 		buttonHint.textContent = 'Upload both participants and events to enable';
 	}
-};
-
-// Function to parse participants CSV
-const parseParticipantsCSV = (content: string): Participant[] => {
-	const lines = content.split('\n');
-	const result: Participant[] = [];
-	
-	// Validate header row (first line)
-	const header = lines[0].split(',');
-	if (header[0].trim().toLowerCase() !== 'id' || header[1]?.trim().toLowerCase() !== 'name') {
-		throw new Error('Participants CSV file must have "ID" and "Name" columns');
-	}
-	
-	// Process data rows (skip header)
-	for (let i = 1; i < lines.length; i++) {
-		const line = lines[i].trim();
-		if (!line) continue; // Skip empty lines
-		
-		const [id, name] = line.split(',');
-		if (id && name) {
-			result.push({
-				id: id.trim(),
-				name: name.trim()
-			});
-		}
-	}
-	
-	return result;
-};
-
-// Function to check if CSV content has too many rows (more than 1000 including header)
-const checkCsvRowLimit = (content: string): boolean => {
-	// Count the number of non-empty rows
-	const lines = content.split('\n').filter(line => line.trim().length > 0);
-	
-	// Check if there are more than 1000 rows (999 data rows + 1 header row)
-	if (lines.length > 1000) {
-		return false;
-	}
-	
-	return true;
-};
-
-// Function to validate and normalize time formats
-const validateAndNormalizeTime = (timeStr: string): string => {
-	// Trim the input to avoid whitespace issues
-	const time = timeStr.trim();
-	
-	// Pattern for 12-hour format (e.g., "9:30 AM", "10:45 PM")
-	// Allow variations like "9:30AM", "9:30 am", etc.
-	const twelveHourPattern = /^(\d{1,2}):(\d{2})\s*(am|pm|AM|PM|a\.m\.|p\.m\.|A\.M\.|P\.M\.)$/;
-	
-	// Pattern for 24-hour format (e.g., "09:30", "14:45")
-	const twentyFourHourPattern = /^(\d{1,2}):(\d{2})$/;
-	
-	let normalizedTime = "";
-	
-	// Try to match 12-hour format
-	const twelveHourMatch = time.match(twelveHourPattern);
-	if (twelveHourMatch) {
-		let hours = parseInt(twelveHourMatch[1], 10);
-		const minutes = parseInt(twelveHourMatch[2], 10);
-		const period = twelveHourMatch[3].toLowerCase();
-		
-		// Validate hours and minutes for 12-hour format
-		if (hours < 1 || hours > 12 || minutes < 0 || minutes > 59) {
-			throw new Error(`Invalid time format: "${time}". Hours must be 1-12 and minutes must be 0-59 in 12-hour format.`);
-		}
-		
-		// Convert to 24-hour format
-		if (period.startsWith('p') && hours < 12) {
-			hours += 12;
-		} else if (period.startsWith('a') && hours === 12) {
-			hours = 0;
-		}
-		
-		// Format hours and minutes to always have 2 digits
-		const formattedHours = hours.toString().padStart(2, '0');
-		const formattedMinutes = minutes.toString().padStart(2, '0');
-		normalizedTime = `${formattedHours}:${formattedMinutes}`;
-		return normalizedTime;
-	}
-	
-	// Try to match 24-hour format
-	const twentyFourHourMatch = time.match(twentyFourHourPattern);
-	if (twentyFourHourMatch) {
-		let hours = parseInt(twentyFourHourMatch[1], 10);
-		const minutes = parseInt(twentyFourHourMatch[2], 10);
-		
-		// Validate hours and minutes
-		if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-			throw new Error(`Invalid time format: "${time}". Hours must be 0-23 and minutes must be 0-59.`);
-		}
-		
-		// Format hours to always have 2 digits
-		const formattedHours = hours.toString().padStart(2, '0');
-		const formattedMinutes = minutes.toString().padStart(2, '0');
-		normalizedTime = `${formattedHours}:${formattedMinutes}`;
-		return normalizedTime;
-	}
-	
-	// If we get here, the time format is invalid
-	throw new Error(`Invalid time format: "${time}". Time must be in either "HH:MM" (24-hour) or "HH:MM AM/PM" (12-hour) format.`);
-};
-
-// Function to parse events CSV
-const parseEventsCSV = (content: string): Event[] => {
-	const lines = content.split('\n');
-	const result: Event[] = [];
-	
-	// Validate header row (first line)
-	const header = lines[0].split(',');
-	if (
-		header[0].trim().toLowerCase() !== 'time' || 
-		header[1]?.trim().toLowerCase() !== 'topic' || 
-		header[2]?.trim().toLowerCase() !== 'room'
-	) {
-		throw new Error('Events CSV file must have "Time", "Topic", and "Room" columns');
-	}
-	
-	// Process data rows (skip header)
-	for (let i = 1; i < lines.length; i++) {
-		const line = lines[i].trim();
-		if (!line) continue; // Skip empty lines
-		
-		const [timeStr, topic, room] = line.split(',');
-		if (timeStr && topic && room) {
-			try {
-				// Validate and normalize the time format
-				const normalizedTime = validateAndNormalizeTime(timeStr);
-				
-				result.push({
-					time: normalizedTime,
-					topic: topic.trim(),
-					room: room.trim()
-				});
-			} catch (error) {
-				// Add line number to error message for easier identification
-				throw new Error(`Error in line ${i + 1}: ${(error as Error).message}`);
-			}
-		}
-	}
-	
-	return result;
-};
-
-// Function to parse room capacity CSV
-const parseRoomCapacityCSV = (content: string): RoomCapacity[] => {
-	const lines = content.split('\n');
-	const result: RoomCapacity[] = [];
-	
-	// Validate header row (first line)
-	const header = lines[0].split(',');
-	if (
-		header[0].trim().toLowerCase() !== 'room' || 
-		header[1]?.trim().toLowerCase() !== 'capacity'
-	) {
-		throw new Error('Room Capacity CSV file must have "Room" and "Capacity" columns');
-	}
-	
-	// Process data rows (skip header)
-	for (let i = 1; i < lines.length; i++) {
-		const line = lines[i].trim();
-		if (!line) continue; // Skip empty lines
-		
-		const [room, capacityStr] = line.split(',');
-		if (room && capacityStr) {
-			const capacity = parseInt(capacityStr.trim(), 10);
-			
-			// Validate capacity
-			if (isNaN(capacity)) {
-				throw new Error(`Invalid capacity value "${capacityStr}" for room "${room}". Capacity must be a number.`);
-			}
-			
-			if (capacity <= 0 || capacity >= 1000) {
-				throw new Error(`Invalid capacity value ${capacity} for room "${room}". Capacity must be greater than 0 and less than 1000.`);
-			}
-			
-			result.push({
-				room: room.trim(),
-				capacity
-			});
-		}
-	}
-	
-	return result;
 };
 
 // Function to handle participant CSV file upload
@@ -623,15 +414,6 @@ const displayRoomCapacities = () => {
 	updateDanceCardButton();
 };
 
-// Function to shuffle an array (Fisher-Yates algorithm)
-const shuffleArray = <T>(array: T[]): T[] => {
-	const result = [...array];
-	for (let i = result.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[result[i], result[j]] = [result[j], result[i]];
-	}
-	return result;
-};
 
 // Function to generate dance cards based on the loaded data
 const generateDanceCards = (): ParticipantDanceCard[] => {
@@ -765,49 +547,8 @@ const exportDanceCardsCSV = (danceCards: ParticipantDanceCard[]) => {
 	// Get unique time slots sorted chronologically
 	const timeSlots = [...new Set(events.map(e => e.time))].sort();
 	
-	// Create CSV header row
-	let csvContent = 'Participant Name,Participant ID';
-	
-	// Add column for each time slot
-	timeSlots.forEach(time => {
-		csvContent += `,${time}`;
-	});
-	csvContent += '\n';
-	
-	// Add row for each participant
-	danceCards.forEach(card => {
-		// Add participant info with explicit quoting to preserve leading zeros
-		csvContent += `"${card.participant.name}","${card.participant.id}"`;
-		
-		// Add assignment for each time slot
-		timeSlots.forEach(time => {
-			const assignment = card.assignments.get(time);
-			
-			if (assignment === 'FREE') {
-				csvContent += ',FREE';
-			} else if (assignment) {
-				// Escape any commas or quotes in room/topic
-				csvContent += `,"${assignment.room} - ${assignment.topic.replace(/"/g, '""')}"`;
-			} else {
-				csvContent += ',ERROR';
-			}
-		});
-		
-		csvContent += '\n';
-	});
-	
-	// Add missed topics section
-	const participantsWithMissedTopics = danceCards.filter(card => card.missedTopics.size > 0);
-	if (participantsWithMissedTopics.length > 0) {
-		csvContent += '\nMissed Topics\n';
-		csvContent += 'Participant Name,Participant ID,Missed Topics\n';
-		
-		// Use the same sorting as the main table (already sorted in danceCards)
-		participantsWithMissedTopics.forEach(card => {
-			// Include participant ID in the missed topics section too
-			csvContent += `"${card.participant.name}","${card.participant.id}","${Array.from(card.missedTopics).sort().join(', ')}"\n`;
-		});
-	}
+	// Generate CSV content
+	const csvContent = generateDanceCardsCSV(danceCards, timeSlots);
 	
 	// Create a blob with the CSV content
 	const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -989,7 +730,7 @@ export const initApp = () => {
 					<p>Select a CSV file with ID and Name columns:</p>
 					<input type="file" id="participants-upload" accept=".csv,text/csv" />
 					<div class="file-actions">
-						<a href="/sample.csv" download="sample.csv" class="download-link">Download Sample CSV</a>
+						<a href="sample.csv" download="sample.csv" class="download-link">Download Sample CSV</a>
 					</div>
 					<p class="hint">CSV format requires ID and Name columns.</p>
 				</div>
@@ -1002,7 +743,7 @@ export const initApp = () => {
 					<p>Select a CSV file with Time, Topic, and Room columns:</p>
 					<input type="file" id="events-upload" accept=".csv,text/csv" />
 					<div class="file-actions">
-						<a href="/events-sample.csv" download="events-sample.csv" class="download-link">Download Sample CSV</a>
+						<a href="events-sample.csv" download="events-sample.csv" class="download-link">Download Sample CSV</a>
 					</div>
 					<p class="hint">CSV format requires Time, Topic, and Room columns.</p>
 				</div>
@@ -1015,7 +756,7 @@ export const initApp = () => {
 					<p>Select a CSV file with Room and Capacity columns:</p>
 					<input type="file" id="room-capacity-upload" accept=".csv,text/csv" />
 					<div class="file-actions">
-						<a href="/room-capacity-sample.csv" download="room-capacity-sample.csv" class="download-link">Download Sample CSV</a>
+						<a href="room-capacity-sample.csv" download="room-capacity-sample.csv" class="download-link">Download Sample CSV</a>
 					</div>
 					<p class="hint">CSV format requires Room and Capacity columns. Capacity must be 1-999.</p>
 				</div>
@@ -1086,11 +827,6 @@ document.addEventListener('DOMContentLoaded', initApp);
 
 // Export functions for testing
 export {
-	parseParticipantsCSV,
-	parseEventsCSV,
-	parseRoomCapacityCSV,
-	validateAndNormalizeTime,
-	checkCsvRowLimit,
 	generateDanceCards,
 	renderDanceCardTable
 };

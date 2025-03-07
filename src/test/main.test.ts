@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { parseParticipantsCSV, parseEventsCSV, validateAndNormalizeTime, initApp } from '../main';
+import { initApp } from '../main';
+import { validateAndNormalizeTime } from '../utils';
+import { parseParticipantsCSV, parseEventsCSV } from '../parsecsv';
 
 describe('Main application', () => {
 	beforeEach(() => {
