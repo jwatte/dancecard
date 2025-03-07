@@ -201,10 +201,247 @@
 				grid-template-columns: 1fr;
 			}
 		}
+		
+		/* Dance card styles */
+		.dance-card-results {
+			margin-top: 30px;
+			padding: 20px;
+			background-color: #f9f9f9;
+			border-radius: 8px;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+			overflow-x: auto;
+		}
+		
+		.results-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 20px;
+			padding-bottom: 10px;
+			border-bottom: 1px solid #ddd;
+		}
+		
+		.results-header h2 {
+			margin: 0;
+			color: #333;
+		}
+		
+		.export-button {
+			background-color: #8E44AD; /* Purple */
+			color: white;
+			padding: 8px 16px;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			font-weight: bold;
+			transition: all 0.3s ease;
+		}
+		
+		.export-button:hover {
+			background-color: #7D3C98; /* Darker purple */
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+		}
+		
+		.export-button:active {
+			transform: translateY(1px);
+			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+		}
+		
+		/* Only apply to h2 elements that are direct children of dance-card-results (not in the header) */
+		.dance-card-results > h2:not(.results-header h2) {
+			margin-top: 0;
+			margin-bottom: 20px;
+			text-align: center;
+			color: #333;
+		}
+		
+		.dance-card-results .table-container {
+			max-height: 70vh;
+			overflow-y: auto;
+			margin-bottom: 30px;
+			border: 1px solid #eee;
+			border-radius: 5px;
+		}
+		
+		.dance-card-table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+		
+		.dance-card-table th {
+			background-color: #4CAF50; /* Green */
+			color: white;
+			padding: 12px 8px;
+			position: sticky;
+			top: 0;
+			z-index: 2;
+			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+		}
+		
+		.dance-card-table td {
+			padding: 10px 8px;
+			text-align: center;
+			border: 1px solid #ddd;
+		}
+		
+		.free-slot {
+			background-color: #f2f2f2;
+			color: #999;
+			font-style: italic;
+		}
+		
+		.assigned-slot {
+			background-color: #e8f5e9;
+		}
+		
+		.error-slot {
+			background-color: #ffebee;
+			color: #d32f2f;
+		}
+		
+		.topic {
+			font-size: 0.9em;
+			color: #666;
+			margin-top: 4px;
+			display: block;
+		}
+		
+		.missed-topics-container {
+			margin-top: 30px;
+			padding-top: 20px;
+			border-top: 1px solid #ddd;
+		}
+		
+		.missed-topics-container h3 {
+			margin-top: 0;
+			margin-bottom: 15px;
+			color: #555;
+		}
+		
+		.missed-topics-container .table-container {
+			max-height: 70vh;
+			overflow-y: auto;
+			border: 1px solid #eee;
+			border-radius: 5px;
+		}
+		
+		.missed-topics-table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+		
+		.missed-topics-table th {
+			background-color: #ef6c00; /* Orange */
+			color: white;
+			position: sticky;
+			top: 0;
+			z-index: 2;
+			padding: 12px 8px;
+			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+		}
+		
+		.missed-topics-table td {
+			border: 1px solid #ddd;
+			padding: 8px;
+		}
+		
+		/* App explanation styles */
+		header {
+			margin-bottom: 30px;
+		}
+		
+		.close-button {
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			background: none;
+			border: none;
+			color: #999;
+			font-size: 24px;
+			cursor: pointer;
+			width: 30px;
+			height: 30px;
+			line-height: 30px;
+			text-align: center;
+			border-radius: 50%;
+			padding: 0;
+		}
+		
+		.close-button:hover {
+			background-color: rgba(0, 0, 0, 0.05);
+			color: #333;
+		}
+		
+		.app-description {
+			background-color: #f9f9f9;
+			padding: 20px;
+			border-radius: 8px;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+			margin-bottom: 20px;
+			position: relative;
+		}
+		
+		.app-description p {
+			color: #555;
+			line-height: 1.5;
+			margin-bottom: 15px;
+		}
+		
+		.instructions h2 {
+			font-size: 1.3em;
+			color: #333;
+			margin-top: 10px;
+			margin-bottom: 15px;
+		}
+		
+		.instructions ol {
+			padding-left: 25px;
+			margin-bottom: 15px;
+		}
+		
+		.instructions li {
+			margin-bottom: 10px;
+			line-height: 1.5;
+		}
+		
+		.instructions strong {
+			color: #4CAF50;
+			font-weight: bold;
+		}
 	</style>
 </head>
 <body>
-	<h1>Dance Card</h1>
+	<header>
+		<div class="app-description" id="app-description">
+			<button id="close-description" class="close-button">&times;</button>
+			<p>This application helps organizers assign participants to different rooms and topics for events with multiple concurrent sessions.</p>
+			<div class="instructions">
+				<h2>How to use:</h2>
+				<ol>
+					<li>Upload a <strong>Participants CSV</strong> file with ID and Name columns</li>
+					<li>Upload an <strong>Events CSV</strong> file with Time, Topic, and Room columns (accepts both 12-hour or 24-hour time formats)</li>
+					<li>Upload a <strong>Room Capacity CSV</strong> file with Room and Capacity columns</li>
+					<li>Click the <strong>Dance Cards</strong> button to generate assignments</li>
+					<li>Download the results using the <strong>Export CSV</strong> button</li>
+				</ol>
+				<p>The system will ensure participants don't see the same topic twice and will respect room capacity limits.</p>
+			</div>
+		</div>
+	</header>
 	<div id="app"></div>
+	
+	<script>
+		// Add event listener for the close button
+		document.addEventListener('DOMContentLoaded', function() {
+			const closeButton = document.getElementById('close-description');
+			const appDescription = document.getElementById('app-description');
+			
+			if (closeButton && appDescription) {
+				closeButton.addEventListener('click', function() {
+					appDescription.style.display = 'none';
+				});
+			}
+		});
+	</script>
 </body>
 </html>
