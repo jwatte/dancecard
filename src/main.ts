@@ -77,6 +77,24 @@ const updateDanceCardButton = () => {
 	}
 };
 
+// Function to display error message for file uploads
+const showFileError = (elementId: string, message: string) => {
+	const errorElement = document.getElementById(elementId);
+	if (errorElement) {
+		errorElement.textContent = message;
+		errorElement.style.opacity = '1';
+	}
+};
+
+// Function to clear error message for file uploads
+const clearFileError = (elementId: string) => {
+	const errorElement = document.getElementById(elementId);
+	if (errorElement) {
+		errorElement.textContent = '';
+		errorElement.style.opacity = '0';
+	}
+};
+
 // Function to handle FileReader onload event for participant CSV files
 function handleParticipantFileLoad(e: ProgressEvent<FileReader>, fileInput: HTMLInputElement): void {
 	try {
@@ -84,7 +102,7 @@ function handleParticipantFileLoad(e: ProgressEvent<FileReader>, fileInput: HTML
 		
 		// Check if the file has too many rows
 		if (!checkCsvRowLimit(content)) {
-			alert('Error: CSV file exceeds the maximum limit of 999 data rows. Please upload a smaller file.');
+			showFileError('participants-error', 'Error: CSV file exceeds the maximum limit of 999 data rows.');
 			fileInput.value = '';
 			return;
 		}
@@ -101,23 +119,37 @@ function handleParticipantFileLoad(e: ProgressEvent<FileReader>, fileInput: HTML
 		// Display the data
 		displayParticipantsTable();
 		
+		// Clear any error messages
+		clearFileError('participants-error');
+		
 		// Reset file input
 		fileInput.value = '';
 	} catch (error) {
-		alert(`Error parsing CSV: ${(error as Error).message}`);
+		showFileError('participants-error', `Error parsing CSV: ${(error as Error).message}`);
 	}
 }
+
+// Function to clear any generated dance card results
+const clearDanceCardResults = () => {
+	const existingResults = document.querySelector('.dance-card-results');
+	if (existingResults) {
+		existingResults.remove();
+	}
+};
 
 // Function to handle participant CSV file upload
 const handleParticipantUpload = (event: FileInputEvent) => {
 	const fileInput = event.target;
 	const file = fileInput.files?.[0];
 	
+	// Clear any existing dance card results immediately
+	clearDanceCardResults();
+	
 	if (!file) return;
 	
 	// Only accept CSV files
 	if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
-		alert('Please upload a CSV file');
+		showFileError('participants-error', 'Please upload a CSV file');
 		fileInput.value = '';
 		return;
 	}
@@ -137,7 +169,7 @@ function handleEventsFileLoad(e: ProgressEvent<FileReader>, fileInput: HTMLInput
 		
 		// Check if the file has too many rows
 		if (!checkCsvRowLimit(content)) {
-			alert('Error: CSV file exceeds the maximum limit of 999 data rows. Please upload a smaller file.');
+			showFileError('events-error', 'Error: CSV file exceeds the maximum limit of 999 data rows.');
 			fileInput.value = '';
 			return;
 		}
@@ -159,10 +191,13 @@ function handleEventsFileLoad(e: ProgressEvent<FileReader>, fileInput: HTMLInput
 		// Display the data
 		displayEventsTable();
 		
+		// Clear any error messages
+		clearFileError('events-error');
+		
 		// Reset file input
 		fileInput.value = '';
 	} catch (error) {
-		alert(`Error parsing CSV: ${(error as Error).message}`);
+		showFileError('events-error', `Error parsing CSV: ${(error as Error).message}`);
 	}
 }
 
@@ -171,11 +206,14 @@ const handleEventsUpload = (event: FileInputEvent) => {
 	const fileInput = event.target;
 	const file = fileInput.files?.[0];
 	
+	// Clear any existing dance card results immediately
+	clearDanceCardResults();
+	
 	if (!file) return;
 	
 	// Only accept CSV files
 	if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
-		alert('Please upload a CSV file');
+		showFileError('events-error', 'Please upload a CSV file');
 		fileInput.value = '';
 		return;
 	}
@@ -195,7 +233,7 @@ function handleRoomCapacityFileLoad(e: ProgressEvent<FileReader>, fileInput: HTM
 		
 		// Check if the file has too many rows
 		if (!checkCsvRowLimit(content)) {
-			alert('Error: CSV file exceeds the maximum limit of 999 data rows. Please upload a smaller file.');
+			showFileError('room-capacity-error', 'Error: CSV file exceeds the maximum limit of 999 data rows.');
 			fileInput.value = '';
 			return;
 		}
@@ -217,10 +255,13 @@ function handleRoomCapacityFileLoad(e: ProgressEvent<FileReader>, fileInput: HTM
 		// Display the data
 		displayRoomCapacitiesTable();
 		
+		// Clear any error messages
+		clearFileError('room-capacity-error');
+		
 		// Reset file input
 		fileInput.value = '';
 	} catch (error) {
-		alert(`Error parsing CSV: ${(error as Error).message}`);
+		showFileError('room-capacity-error', `Error parsing CSV: ${(error as Error).message}`);
 	}
 }
 
@@ -229,11 +270,14 @@ const handleRoomCapacityUpload = (event: FileInputEvent) => {
 	const fileInput = event.target;
 	const file = fileInput.files?.[0];
 	
+	// Clear any existing dance card results immediately
+	clearDanceCardResults();
+	
 	if (!file) return;
 	
 	// Only accept CSV files
 	if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
-		alert('Please upload a CSV file');
+		showFileError('room-capacity-error', 'Please upload a CSV file');
 		fileInput.value = '';
 		return;
 	}
@@ -258,7 +302,7 @@ const validateEventRooms = () => {
 		// Create a list of the invalid rooms (removing duplicates)
 		const invalidRooms = [...new Set(invalidEvents.map(event => event.room))];
 		
-		alert(`Warning: The following rooms in the events file don't exist in the room capacity file: ${invalidRooms.join(', ')}`);
+		showFileError('events-error', `Warning: The following rooms don't exist in the room capacity file: ${invalidRooms.join(', ')}`);
 	}
 };
 
@@ -316,8 +360,11 @@ export const initApp = () => {
 				<div class="upload-section">
 					<h2>Upload Participants</h2>
 					<p>Select a CSV file with ID and Name columns:</p>
-					<input type="file" id="participants-upload" accept=".csv,text/csv" />
-					<label for="participants-upload">Choose File</label>
+					<div class="file-input-container">
+						<input type="file" id="participants-upload" accept=".csv,text/csv" />
+						<label for="participants-upload">Choose File</label>
+						<div id="participants-error" class="file-error"></div>
+					</div>
 					<p class="hint">CSV format requires ID and Name columns.</p>
 					<div class="file-actions">
 						<a href="sample.csv" download="sample.csv" class="download-link">Download Sample CSV</a>
@@ -330,8 +377,11 @@ export const initApp = () => {
 				<div class="upload-section">
 					<h2>Upload Events</h2>
 					<p>Select a CSV file with Time, Topic, and Room columns:</p>
-					<input type="file" id="events-upload" accept=".csv,text/csv" />
-					<label for="events-upload">Choose File</label>
+					<div class="file-input-container">
+						<input type="file" id="events-upload" accept=".csv,text/csv" />
+						<label for="events-upload">Choose File</label>
+						<div id="events-error" class="file-error"></div>
+					</div>
 					<p class="hint">CSV format requires Time, Topic, and Room columns.</p>
 					<div class="file-actions">
 						<a href="events-sample.csv" download="events-sample.csv" class="download-link">Download Sample CSV</a>
@@ -344,8 +394,11 @@ export const initApp = () => {
 				<div class="upload-section">
 					<h2>Upload Room Capacity</h2>
 					<p>Select a CSV file with Room and Capacity columns:</p>
-					<input type="file" id="room-capacity-upload" accept=".csv,text/csv" />
-					<label for="room-capacity-upload">Choose File</label>
+					<div class="file-input-container">
+						<input type="file" id="room-capacity-upload" accept=".csv,text/csv" />
+						<label for="room-capacity-upload">Choose File</label>
+						<div id="room-capacity-error" class="file-error"></div>
+					</div>
 					<p class="hint">CSV format requires Room and Capacity columns. Capacity must be 1-999.</p>
 					<div class="file-actions">
 						<a href="room-capacity-sample.csv" download="room-capacity-sample.csv" class="download-link">Download Sample CSV</a>
