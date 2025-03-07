@@ -1,0 +1,32 @@
+{
+	"name": "dancecard",
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:single": "vitest run -t",
+		"lint": "eslint src --ext .ts",
+		"serve": "npm run build && cd dist && python -m http.server",
+		"typecheck": "tsc --noEmit",
+		"start": "npm run build && npm run preview"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "Single-page self-contained web app with no backend",
+	"devDependencies": {
+		"@types/node": "^22.13.9",
+		"@typescript-eslint/eslint-plugin": "^8.26.0",
+		"@typescript-eslint/parser": "^8.26.0",
+		"eslint": "^9.21.0",
+		"happy-dom": "^17.2.2",
+		"jsdom": "^26.0.0",
+		"typescript": "^5.8.2",
+		"vite": "^6.2.0",
+		"vitest": "^3.0.8"
+	}
+}
