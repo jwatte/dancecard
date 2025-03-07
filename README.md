@@ -47,15 +47,25 @@ npm run typecheck
 
 ```
 /
-├── src/               # All TypeScript files
-│   ├── main.ts        # Main TypeScript entry point
-│   ├── assets/        # Static assets
-│   │   ├── sample.csv       # Sample participant CSV
-│   │   └── events-sample.csv # Sample event CSV
-│   └── test/          # Test files
-├── index.html        # Main HTML entry point
-├── dist/             # Compiled output (generated)
-├── package.json      # Project configuration
-├── tsconfig.json     # TypeScript configuration
-└── vite.config.ts    # Vite configuration
+├── src/                     # Source files
+│   ├── main.ts              # Main TypeScript entry point
+│   ├── dancecard.ts         # Main application logic
+│   ├── help.ts              # Help text and documentation
+│   ├── parsecsv.ts          # CSV parsing functionality
+│   ├── tables.ts            # Table generation and display
+│   ├── types.ts             # TypeScript type definitions
+│   ├── utils.ts             # Utility functions
+│   ├── styles.css           # CSS styles
+│   ├── assets/              # Static assets
+│   │   ├── sample.csv             # Sample participant CSV
+│   │   ├── events-sample.csv      # Sample event CSV
+│   │   └── room-capacity-sample.csv # Sample room capacity CSV
+│   └── test/                # Test files
+│       └── main.test.ts
+├── index.html              # Main HTML entry point
+├── dist/                   # Compiled output (generated)
+├── package.json            # Project configuration
+├── tsconfig.json           # TypeScript configuration
+├── eslint.config.js        # ESLint configuration
+└── vite.config.ts          # Vite configuration
 ```
