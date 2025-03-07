@@ -4,13 +4,10 @@ import {
 	FileInputEvent, 
 	Participant, 
 	Event, 
-	RoomCapacity, 
-	ParticipantDanceCard
+	RoomCapacity
 } from './types';
 
-import {
-	validateAndNormalizeTime
-} from './utils';
+// Utils functions are used indirectly by other imported functions
 
 import {
 	parseParticipantsCSV,
@@ -22,8 +19,8 @@ import {
 import {
 	generateDanceCards,
 	renderDanceCardTable,
-	resetDanceCardData,
-	exportDanceCardsCSV
+	resetDanceCardData
+	// exportDanceCardsCSV is used within renderDanceCardTable
 } from './dancecard';
 
 import {
@@ -31,6 +28,11 @@ import {
 	displayEvents,
 	displayRoomCapacities
 } from './tables';
+
+import {
+	initializeHelp,
+	createHelpIcon
+} from './help';
 
 // Global arrays to store the parsed CSV data
 const participants: Participant[] = [];
@@ -381,6 +383,15 @@ export const initApp = () => {
 	
 	// Initialize button state
 	updateDanceCardButton();
+	
+	// Initialize help functionality
+	initializeHelp();
+	
+	// Add help icon to the Dance Cards button container
+	const danceCardContainer = document.querySelector('.dance-card-container');
+	if (danceCardContainer) {
+		createHelpIcon(danceCardContainer as HTMLElement);
+	}
 };
 
 // Function to set up all event listeners
@@ -412,7 +423,10 @@ const setupEventListeners = (): void => {
 };
 
 // Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', () => {
+	// Initialize the app immediately
+	initApp();
+});
 
 // Export functions for testing
 export {

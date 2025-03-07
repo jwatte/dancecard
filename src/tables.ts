@@ -175,13 +175,13 @@ export const displayRoomCapacities = (
 		</thead>
 		<tbody>
 			${roomCapacities
-				.sort((a, b) => a.room.localeCompare(b.room))
-				.map(rc => `
-					<tr>
-						<td>${rc.room}</td>
-						<td>${rc.capacity}</td>
-					</tr>
-				`).join('')}
+		.sort((a, b) => a.room.localeCompare(b.room))
+		.map(rc => `
+				<tr>
+					<td>${rc.room}</td>
+					<td>${rc.capacity}</td>
+				</tr>
+			`).join('')}
 		</tbody>
 	`;
 	

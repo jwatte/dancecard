@@ -8,36 +8,6 @@
 	<link rel="stylesheet" href="/src/styles.css">
 </head>
 <body>
-	<header>
-		<div class="app-description" id="app-description">
-			<button id="close-description" class="close-button">&times;</button>
-			<p>This application helps organizers assign participants to different rooms and topics for events with multiple concurrent sessions.</p>
-			<div class="instructions">
-				<h2>How to use:</h2>
-				<ol>
-					<li>Upload a <strong>Participants CSV</strong> file with ID and Name columns</li>
-					<li>Upload an <strong>Events CSV</strong> file with Time, Topic, and Room columns (accepts both 12-hour or 24-hour time formats)</li>
-					<li>Upload a <strong>Room Capacity CSV</strong> file with Room and Capacity columns</li>
-					<li>Click the <strong>Dance Cards</strong> button to generate assignments</li>
-					<li>Download the results using the <strong>Export CSV</strong> button</li>
-				</ol>
-				<p>The system will ensure participants don't see the same topic twice and will respect room capacity limits.</p>
-			</div>
-		</div>
-	</header>
 	<div id="app"></div>
-	<script>
-		// Add event listener for the close button
-		document.addEventListener('DOMContentLoaded', function() {
-			const closeButton = document.getElementById('close-description');
-			const appDescription = document.getElementById('app-description');
-			
-			if (closeButton && appDescription) {
-				closeButton.addEventListener('click', function() {
-					appDescription.style.display = 'none';
-				});
-			}
-		});
-	</script>
 </body>
 </html>

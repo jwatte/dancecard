@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+// File system module not needed for these tests
 import { describe, it, expect, beforeEach } from 'vitest';
 import { initApp } from '../main';
 import { validateAndNormalizeTime } from '../utils';

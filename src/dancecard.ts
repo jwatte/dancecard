@@ -89,7 +89,7 @@ export const generateDanceCards = (participants: Participant[], events: Event[],
 					// Ensure the room exists in our capacity data
 					return roomCapacityMap.has(room);
 				})
-				.filter(([room, topic]) => {
+				.filter(([, topic]) => {
 					// Only include topics this participant hasn't seen yet
 					return !seenTopics.has(topic);
 				})
@@ -194,6 +194,8 @@ export const renderDanceCardTable = (danceCards: ParticipantDanceCard[], events:
 	// Create dance card results container
 	const resultsContainer = document.createElement('div');
 	resultsContainer.className = 'dance-card-results';
+	
+	// No animation styles needed
 	
 	// Create header with export button
 	const headerContainer = document.createElement('div');
