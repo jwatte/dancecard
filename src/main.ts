@@ -34,13 +34,13 @@ const danceCardData: DanceCardData = {
 	participantsTimesRooms: new Map<string, Map<string, string[]>>()
 };
 
-// Function to check if both data sets are loaded and enable/disable the dance card button
+// Function to check if all data sets are loaded and enable/disable the dance card button
 const updateDanceCardButton = () => {
 	const danceCardButton = document.getElementById('dance-card-button') as HTMLButtonElement;
 	const buttonHint = document.getElementById('button-hint');
 	if (!danceCardButton || !buttonHint) return;
 	
-	const isEnabled = participants.length > 0 && events.length > 0;
+	const isEnabled = participants.length > 0 && events.length > 0 && roomCapacities.length > 0;
 	danceCardButton.disabled = !isEnabled;
 	
 	// Update button appearance and hint text based on state
@@ -51,7 +51,24 @@ const updateDanceCardButton = () => {
 	} else {
 		danceCardButton.classList.add('button-disabled');
 		danceCardButton.classList.remove('button-enabled');
-		buttonHint.textContent = 'Upload both participants and events to enable';
+		
+		// Create more specific hint message based on what's missing
+		let message = 'Upload ';
+		const missing = [];
+		if (participants.length === 0) missing.push('participants');
+		if (events.length === 0) missing.push('events');
+		if (roomCapacities.length === 0) missing.push('room capacities');
+		
+		// Format the message
+		if (missing.length === 1) {
+			message += missing[0] + ' to enable';
+		} else if (missing.length === 2) {
+			message += missing[0] + ' and ' + missing[1] + ' to enable';
+		} else {
+			message += 'all CSV files to enable';
+		}
+		
+		buttonHint.textContent = message;
 	}
 };
 
@@ -305,7 +322,7 @@ const displayEvents = () => {
 	// Create summary element showing distinct topics/rooms
 	const summary = document.createElement('div');
 	summary.className = 'data-summary';
-	summary.innerHTML = `<p><strong>${groupedEvents.length}</strong> distinct topic${groupedEvents.length === 1 ? '' : 's'} loaded</p>`;
+	summary.innerHTML = `<p><strong>${groupedEvents.length}</strong> distinct topic${groupedEvents.length === 1 ? '' : 's'} and room${groupedEvents.length === 1 ? '' : 's'} loaded</p>`;
 	
 	// Create table for grouped events
 	const table = document.createElement('table');
@@ -722,51 +739,54 @@ export const initApp = () => {
 	if (!app) return;
 	
 	app.innerHTML = `
+		<!-- Dance Cards button section -->
+		<div class="dance-card-container">
+			<button id="dance-card-button" class="dance-card-button button-disabled" disabled>Dance Cards</button>
+			<p id="button-hint" class="button-hint">Upload all CSV files to enable</p>
+		</div>
+		
 		<div class="grid-container grid-container-3col">
 			<!-- Left column: Participants upload -->
-			<div class="grid-item">
+			<div class="grid-item csv-upload">
 				<div class="upload-section">
 					<h2>Upload Participants</h2>
 					<p>Select a CSV file with ID and Name columns:</p>
 					<input type="file" id="participants-upload" accept=".csv,text/csv" />
+					<label for="participants-upload">Choose File</label>
+					<p class="hint">CSV format requires ID and Name columns.</p>
 					<div class="file-actions">
 						<a href="sample.csv" download="sample.csv" class="download-link">Download Sample CSV</a>
 					</div>
-					<p class="hint">CSV format requires ID and Name columns.</p>
 				</div>
 			</div>
 			
 			<!-- Middle column: Events upload -->
-			<div class="grid-item">
+			<div class="grid-item csv-upload">
 				<div class="upload-section">
 					<h2>Upload Events</h2>
 					<p>Select a CSV file with Time, Topic, and Room columns:</p>
 					<input type="file" id="events-upload" accept=".csv,text/csv" />
+					<label for="events-upload">Choose File</label>
+					<p class="hint">CSV format requires Time, Topic, and Room columns.</p>
 					<div class="file-actions">
 						<a href="events-sample.csv" download="events-sample.csv" class="download-link">Download Sample CSV</a>
 					</div>
-					<p class="hint">CSV format requires Time, Topic, and Room columns.</p>
 				</div>
 			</div>
 			
 			<!-- Right column: Room Capacity upload -->
-			<div class="grid-item">
+			<div class="grid-item csv-upload">
 				<div class="upload-section">
 					<h2>Upload Room Capacity</h2>
 					<p>Select a CSV file with Room and Capacity columns:</p>
 					<input type="file" id="room-capacity-upload" accept=".csv,text/csv" />
+					<label for="room-capacity-upload">Choose File</label>
+					<p class="hint">CSV format requires Room and Capacity columns. Capacity must be 1-999.</p>
 					<div class="file-actions">
 						<a href="room-capacity-sample.csv" download="room-capacity-sample.csv" class="download-link">Download Sample CSV</a>
 					</div>
-					<p class="hint">CSV format requires Room and Capacity columns. Capacity must be 1-999.</p>
 				</div>
 			</div>
-		</div>
-		
-		<!-- Dance Cards button section -->
-		<div class="dance-card-container">
-			<button id="dance-card-button" class="dance-card-button button-disabled" disabled>Dance Cards</button>
-			<p id="button-hint" class="button-hint">Upload both participants and events to enable</p>
 		</div>
 		
 		<div class="grid-container grid-container-3col">
