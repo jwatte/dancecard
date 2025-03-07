@@ -16,7 +16,7 @@ export const checkCsvRowLimit = (content: string): boolean => {
 
 // Function to parse participants CSV
 export const parseParticipantsCSV = (content: string): Participant[] => {
-	const lines = content.split('\n');
+	const lines = content.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
 	const result: Participant[] = [];
 	
 	// Validate header row (first line)
@@ -44,7 +44,7 @@ export const parseParticipantsCSV = (content: string): Participant[] => {
 
 // Function to parse events CSV
 export const parseEventsCSV = (content: string): Event[] => {
-	const lines = content.split('\n');
+	const lines = content.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
 	const result: Event[] = [];
 	
 	// Validate header row (first line)
@@ -85,7 +85,7 @@ export const parseEventsCSV = (content: string): Event[] => {
 
 // Function to parse room capacity CSV
 export const parseRoomCapacityCSV = (content: string): RoomCapacity[] => {
-	const lines = content.split('\n');
+	const lines = content.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
 	const result: RoomCapacity[] = [];
 	
 	// Validate header row (first line)
