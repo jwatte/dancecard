@@ -107,19 +107,8 @@ export const generateDanceCardsCSV = (
 		
 		csvContent += '\n';
 	});
-	
-	// Add missed topics section
-	const participantsWithMissedTopics = danceCards.filter(card => card.missedTopics.size > 0);
-	if (participantsWithMissedTopics.length > 0) {
-		csvContent += '\nMissed Topics\n';
-		csvContent += 'Participant Name,Participant ID,Missed Topics\n';
-		
-		// Use the same sorting as the main table (already sorted in danceCards)
-		participantsWithMissedTopics.forEach(card => {
-			// Include participant ID in the missed topics section too
-			csvContent += `"${card.participant.name}","${card.participant.id}","${Array.from(card.missedTopics).sort().join(', ')}"\n`;
-		});
-	}
-	
+
+	// We do not want the missed topics section here, that's for display only.
+
 	return csvContent;
 };
