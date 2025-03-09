@@ -1,9 +1,11 @@
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import prettier from 'eslint-plugin-prettier';
+import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default [
 	{
-		ignores: ['dist/**', 'node_modules/**']
+		ignores: ['dist/**', 'node_modules/**'],
 	},
 	{
 		files: ['src/**/*.ts'],
@@ -14,14 +16,15 @@ export default [
 		},
 		plugins: {
 			'@typescript-eslint': tseslint,
+			prettier: prettier,
 		},
 		rules: {
-			// Use tabs for indentation as per CLAUDE.md
-			'indent': ['error', 'tab'],
+			'prettier/prettier': 'error',
 			'no-unused-vars': 'off',
 			'@typescript-eslint/no-unused-vars': ['error'],
 			'@typescript-eslint/explicit-module-boundary-types': 'off',
 			'@typescript-eslint/no-explicit-any': 'error',
 		},
 	},
+	eslintConfigPrettier,
 ];

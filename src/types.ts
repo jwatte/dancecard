@@ -1,7 +1,7 @@
 // Define the proper event type for file inputs
 // @ts-ignore in some places to support browser API compatibility
-export type FileInputEvent = {
-    target: HTMLInputElement;
+export interface FileInputEvent extends Event {
+	target: HTMLInputElement;
 }
 
 // Define types for our data
@@ -10,7 +10,7 @@ export type Participant = {
 	name: string;
 };
 
-export type Event = {
+export type EventData = {
 	time: string;
 	topic: string;
 	room: string;
@@ -22,11 +22,13 @@ export type RoomCapacity = {
 };
 
 // Type for dance card assignment
-export type DanceCardAssignment = {
-	time: string;
-	room: string;
-	topic: string;
-} | 'FREE';
+export type DanceCardAssignment =
+	| {
+			time: string;
+			room: string;
+			topic: string;
+	  }
+	| 'FREE';
 
 // Type for participant dance card
 export type ParticipantDanceCard = {
@@ -39,7 +41,7 @@ export type ParticipantDanceCard = {
 export type DanceCardData = {
 	// Maps from room → time → participant[]
 	roomsTimesParticipants: Map<string, Map<string, Participant[]>>;
-	
+
 	// Maps from participant ID → time → room[]
 	participantsTimesRooms: Map<string, Map<string, string[]>>;
 };

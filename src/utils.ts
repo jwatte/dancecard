@@ -1,65 +1,95 @@
 import { ParticipantDanceCard } from './types';
 
-// Function to validate and normalize time formats
+type TimeMatch = {
+	hours: number;
+	minutes: number;
+	period?: string;
+};
+
+const validateMinutes = (minutes: number): void => {
+	if (minutes < 0 || minutes > 59) {
+		throw new Error(`Invalid minutes: ${minutes}. Minutes must be between 0 and 59.`);
+	}
+};
+
+const validate24HourFormat = (hours: number): void => {
+	if (hours < 0 || hours > 23) {
+		throw new Error(
+			`Invalid hours: ${hours}. Hours must be between 0 and 23 in 24-hour format.`
+		);
+	}
+};
+
+const validate12HourFormat = (hours: number): void => {
+	if (hours < 1 || hours > 12) {
+		throw new Error(
+			`Invalid hours: ${hours}. Hours must be between 1 and 12 in 12-hour format.`
+		);
+	}
+};
+
+// Function to parse and validate time components
+const parseTimeComponents = (match: RegExpMatchArray, is24Hour: boolean): TimeMatch => {
+	const hours = parseInt(match[1], 10);
+	const minutes = parseInt(match[2], 10);
+	const period = !is24Hour ? match[3].toLowerCase() : undefined;
+
+	validateMinutes(minutes);
+
+	if (is24Hour) {
+		validate24HourFormat(hours);
+	} else {
+		validate12HourFormat(hours);
+	}
+
+	return { hours, minutes, period };
+};
+
+// Function to convert 12-hour time to 24-hour format
+const convertTo24Hour = ({ hours, minutes, period }: TimeMatch): TimeMatch => {
+	if (!period) return { hours, minutes };
+
+	let adjustedHours = hours;
+	if (period.startsWith('p') && hours < 12) {
+		adjustedHours += 12;
+	} else if (period.startsWith('a') && hours === 12) {
+		adjustedHours = 0;
+	}
+
+	return { hours: adjustedHours, minutes };
+};
+
+// Function to format time components to standard format
+const formatTime = ({ hours, minutes }: TimeMatch): string => {
+	const formattedHours = hours.toString().padStart(2, '0');
+	const formattedMinutes = minutes.toString().padStart(2, '0');
+	return `${formattedHours}:${formattedMinutes}`;
+};
+
+// Main time validation and normalization function
 export const validateAndNormalizeTime = (timeStr: string): string => {
-	// Trim the input to avoid whitespace issues
 	const time = timeStr.trim();
-	
-	// Pattern for 12-hour format (e.g., "9:30 AM", "10:45 PM")
-	// Allow variations like "9:30AM", "9:30 am", etc.
-	const twelveHourPattern = /^(\d{1,2}):(\d{2})\s*(am|pm|AM|PM|a\.m\.|p\.m\.|A\.M\.|P\.M\.)$/;
-	
-	// Pattern for 24-hour format (e.g., "09:30", "14:45")
-	const twentyFourHourPattern = /^(\d{1,2}):(\d{2})$/;
-	
-	let normalizedTime = "";
-	
-	// Try to match 12-hour format
-	const twelveHourMatch = time.match(twelveHourPattern);
+	const timePatterns = {
+		twelveHour: /^(\d{1,2}):(\d{2})\s*(am|pm|AM|PM|a\.m\.|p\.m\.|A\.M\.|P\.M\.)$/,
+		twentyFourHour: /^(\d{1,2}):(\d{2})$/,
+	};
+
+	const twelveHourMatch = time.match(timePatterns.twelveHour);
 	if (twelveHourMatch) {
-		let hours = parseInt(twelveHourMatch[1], 10);
-		const minutes = parseInt(twelveHourMatch[2], 10);
-		const period = twelveHourMatch[3].toLowerCase();
-		
-		// Validate hours and minutes for 12-hour format
-		if (hours < 1 || hours > 12 || minutes < 0 || minutes > 59) {
-			throw new Error(`Invalid time format: "${time}". Hours must be 1-12 and minutes must be 0-59 in 12-hour format.`);
-		}
-		
-		// Convert to 24-hour format
-		if (period.startsWith('p') && hours < 12) {
-			hours += 12;
-		} else if (period.startsWith('a') && hours === 12) {
-			hours = 0;
-		}
-		
-		// Format hours and minutes to always have 2 digits
-		const formattedHours = hours.toString().padStart(2, '0');
-		const formattedMinutes = minutes.toString().padStart(2, '0');
-		normalizedTime = `${formattedHours}:${formattedMinutes}`;
-		return normalizedTime;
+		const components = parseTimeComponents(twelveHourMatch, false);
+		const converted = convertTo24Hour(components);
+		return formatTime(converted);
 	}
-	
-	// Try to match 24-hour format
-	const twentyFourHourMatch = time.match(twentyFourHourPattern);
+
+	const twentyFourHourMatch = time.match(timePatterns.twentyFourHour);
 	if (twentyFourHourMatch) {
-		let hours = parseInt(twentyFourHourMatch[1], 10);
-		const minutes = parseInt(twentyFourHourMatch[2], 10);
-		
-		// Validate hours and minutes
-		if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-			throw new Error(`Invalid time format: "${time}". Hours must be 0-23 and minutes must be 0-59.`);
-		}
-		
-		// Format hours to always have 2 digits
-		const formattedHours = hours.toString().padStart(2, '0');
-		const formattedMinutes = minutes.toString().padStart(2, '0');
-		normalizedTime = `${formattedHours}:${formattedMinutes}`;
-		return normalizedTime;
+		const components = parseTimeComponents(twentyFourHourMatch, true);
+		return formatTime(components);
 	}
-	
-	// If we get here, the time format is invalid
-	throw new Error(`Invalid time format: "${time}". Time must be in either "HH:MM" (24-hour) or "HH:MM AM/PM" (12-hour) format.`);
+
+	throw new Error(
+		`Invalid time format: "${time}". Time must be in either "HH:MM" (24-hour) or "HH:MM AM/PM" (12-hour) format.`
+	);
 };
 
 // Function to shuffle an array (Fisher-Yates algorithm)
@@ -77,38 +107,21 @@ export const generateDanceCardsCSV = (
 	danceCards: ParticipantDanceCard[],
 	timeSlots: string[]
 ): string => {
-	// Create CSV header row
-	let csvContent = 'Participant Name,Participant ID';
-	
-	// Add column for each time slot
-	timeSlots.forEach(time => {
-		csvContent += `,${time}`;
-	});
-	csvContent += '\n';
-	
-	// Add row for each participant
-	danceCards.forEach(card => {
-		// Add participant info with explicit quoting to preserve leading zeros
-		csvContent += `"${card.participant.name}","${card.participant.id}"`;
-		
-		// Add assignment for each time slot
-		timeSlots.forEach(time => {
+	const csvHeader = ['Participant Name', 'Participant ID', ...timeSlots];
+	const csvRows = danceCards.map((card) => {
+		const participantInfo = [`"${card.participant.name}"`, `"${card.participant.id}"`];
+
+		const assignments = timeSlots.map((time) => {
 			const assignment = card.assignments.get(time);
-			
-			if (assignment === 'FREE') {
-				csvContent += ',FREE';
-			} else if (assignment) {
-				// Escape any commas or quotes in room/topic
-				csvContent += `,"${assignment.room} - ${assignment.topic.replace(/"/g, '""')}"`;
-			} else {
-				csvContent += ',ERROR';
+			if (assignment === 'FREE') return 'FREE';
+			if (assignment) {
+				return `"${assignment.room} - ${assignment.topic.replace(/"/g, '""')}"`;
 			}
+			return 'ERROR';
 		});
-		
-		csvContent += '\n';
+
+		return [...participantInfo, ...assignments].join(',');
 	});
 
-	// We do not want the missed topics section here, that's for display only.
-
-	return csvContent;
+	return [csvHeader.join(','), ...csvRows].join('\n');
 };
