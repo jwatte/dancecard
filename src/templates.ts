@@ -1,8 +1,15 @@
 // Main app structure
 export const createAppStructure = (): string => `
+    <div class="time-schedule" id="dance-card-container">
+        <button id="help-icon" class="help-icon">?</button>
+        <button id="dance-card-button" class="dance-card-button" disabled>Generate Dance Cards</button>
+        <span id="button-hint" class="hint"></span>
+    </div>
+
     <div class="grid-container">
         <div class="grid-item upload-section">
             <h2>Participants</h2>
+			<p class="hint">Participants CSV should have ID and Name columns</p>
             <div class="file-input-container">
                 <input type="file" id="participants-upload" accept=".csv">
                 <label for="participants-upload">Choose Participants CSV</label>
@@ -11,11 +18,11 @@ export const createAppStructure = (): string => `
             <div class="file-actions">
                 <a href="sample.csv" class="download-link" download>Download Sample CSV</a>
             </div>
-            <div id="participant-list"></div>
         </div>
 
         <div class="grid-item upload-section">
             <h2>Events</h2>
+			<p class="hint">Events CSV should have Time, Topic, and Room columns</p>
             <div class="file-input-container">
                 <input type="file" id="events-upload" accept=".csv">
                 <label for="events-upload">Choose Events CSV</label>
@@ -24,11 +31,11 @@ export const createAppStructure = (): string => `
             <div class="file-actions">
                 <a href="events-sample.csv" class="download-link" download>Download Sample CSV</a>
             </div>
-            <div id="events-list"></div>
         </div>
 
         <div class="grid-item upload-section">
             <h2>Room Capacities</h2>
+			<p class="hint">Room Capacity CSV should have Room and Capacity columns</p>
             <div class="file-input-container">
                 <input type="file" id="room-capacities-upload" accept=".csv">
                 <label for="room-capacities-upload">Choose Room Capacities CSV</label>
@@ -37,16 +44,31 @@ export const createAppStructure = (): string => `
             <div class="file-actions">
                 <a href="room-capacity-sample.csv" class="download-link" download>Download Sample CSV</a>
             </div>
-            <div id="room-capacity-list"></div>
         </div>
     </div>
 
-    <div class="time-schedule">
-        <button id="dance-card-button" class="dance-card-button" disabled>Generate Dance Cards</button>
-        <span id="button-hint" class="hint"></span>
-    </div>
+	<!-- Data display section -->
+	<div class="grid-container">
+		<!-- Left column: Participants display -->
+		<div class="grid-item">
+			<div id="participant-list" class="data-list">
+				<p>No participants loaded. Please upload a CSV file.</p>
+			</div>
+		</div>
+		<!-- Middle column: Events display -->
+		<div class="grid-item">
+			<div id="events-list" class="data-list">
+				<p>No events loaded. Please upload a CSV file.</p>
+			</div>
+		</div>
+		<!-- Right column: Room Capacity display -->
+		<div class="grid-item">
+			<div id="room-capacity-list" class="data-list">
+				<p>No room capacities loaded. Please upload a CSV file.</p>
+			</div>
+		</div>
+	</div>
 `;
-
 // Help content template
 export const createHelpContent = (): string => `
     <div class="app-description" id="app-description">

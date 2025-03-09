@@ -41,6 +41,12 @@ export const initializeHelp = (): void => {
 	// Add to document body
 	document.body.insertBefore(helpContainer, document.body.firstChild);
 
+	// Set up help icon click handler
+	const helpIcon = document.getElementById('help-icon');
+	if (helpIcon) {
+		helpIcon.addEventListener('click', toggleHelp);
+	}
+
 	// Set up close button
 	const closeButton = document.getElementById('close-description');
 	if (closeButton) {

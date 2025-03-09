@@ -114,7 +114,7 @@ export const generateDanceCards = (
 	return finalState.danceCards;
 };
 
-const preprocessData = (state: InitialState): PreprocessedState => {
+export const preprocessData = (state: InitialState): PreprocessedState => {
 	const timeSlots = [...new Set(state.events.map((e) => e.time))].sort();
 	const allTopics = [...new Set(state.events.map((e) => e.topic))];
 
@@ -129,7 +129,7 @@ const preprocessData = (state: InitialState): PreprocessedState => {
 	return { timeSlots, allTopics, timeRoomTopicMap };
 };
 
-const setupAssignmentState = (
+export const setupAssignmentState = (
 	initial: InitialState,
 	preprocessed: PreprocessedState
 ): AssignmentState => {
@@ -153,7 +153,7 @@ const setupAssignmentState = (
 	};
 };
 
-const performFirstAssignmentPhase = (state: AssignmentState): AssignmentState => {
+export const performFirstAssignmentPhase = (state: AssignmentState): AssignmentState => {
 	const newState = structuredClone(state);
 
 	// Process participants time slot by time slot
@@ -177,7 +177,7 @@ const performFirstAssignmentPhase = (state: AssignmentState): AssignmentState =>
 	return newState;
 };
 
-const performAnnealingPhase = (state: AssignmentState): AssignmentState => {
+export const performAnnealingPhase = (state: AssignmentState): AssignmentState => {
 	const newState = structuredClone(state);
 	let annealingQueue = initializeAnnealingQueue(newState.participantStates);
 
@@ -186,7 +186,7 @@ const performAnnealingPhase = (state: AssignmentState): AssignmentState => {
 
 	while (annealingQueue.length > 0 && iterations < MAX_ITERATIONS) {
 		iterations++;
-		const result = processNextAnnealingEntry(annealingQueue.shift()!, newState);
+		const result = annealUnusedParticipantSlot(annealingQueue.shift()!, newState);
 		if (result.requeue) {
 			annealingQueue.push(result.entry);
 		}
@@ -199,7 +199,7 @@ const performAnnealingPhase = (state: AssignmentState): AssignmentState => {
 	return newState;
 };
 
-const convertToFinalFormat = (state: AssignmentState): FinalState => {
+export const convertToFinalFormat = (state: AssignmentState): FinalState => {
 	const danceCards = state.participantStates.map((pState) => ({
 		participant: pState.participant,
 		assignments: createAssignmentsMap(pState, state),
@@ -230,19 +230,18 @@ const assignParticipantToRoom = (
 		// Try each room that offers this topic
 		for (const room of availableRooms) {
 			const roomState = state.roomStates.find((rs) => rs.room === room);
-			if (!roomState) continue;
-
-			// Check if room has capacity
-			const currentAttendees = roomState.attendees.get(time);
-			if (!currentAttendees || currentAttendees.size >= roomState.capacity) {
+			if (!roomState) {
 				continue;
 			}
-
-			// Assign participant to room
-			pState.assignments.set(time, room);
-			pState.unvisitedTopics.delete(topic);
-			currentAttendees.add(pState.participant);
-			return;
+			// Check if room has capacity
+			const currentAttendees = roomState.attendees.get(time);
+			if (currentAttendees && currentAttendees.size < roomState.capacity) {
+				// Assign participant to room
+				pState.assignments.set(time, room);
+				pState.unvisitedTopics.delete(topic);
+				currentAttendees.add(pState.participant);
+				return;
+			}
 		}
 	}
 
@@ -289,23 +288,60 @@ const removeParticipantFromRoom = (
 	time: string,
 	currentRoom: string,
 	state: AssignmentState
-): void => {
+): boolean => {
 	const roomState = state.roomStates.find((rs) => rs.room === currentRoom);
 	if (roomState) {
 		const attendees = roomState.attendees.get(time);
 		if (attendees) {
 			attendees.delete(pState.participant);
+			pState.assignments.set(time, 'FREE');
+			return true;
+		}
+	}
+	return false;
+};
+
+const tryReassignment = (
+	pState: ParticipantState,
+	time: string,
+	state: AssignmentState
+): AnnealingResult | undefined => {
+	for (const topic of pState.unvisitedTopics) {
+		const availableRoom = findRoomsWithTopic(topic, time, state.timeRoomTopicMap)[0];
+		const room = state.roomStates.find((rs) => rs.room === availableRoom);
+		if (!room) {
+			continue;
+		}
+		const attendeesAtTime = room.attendees.get(time);
+		if (attendeesAtTime?.size! >= room.capacity) {
+			// remove a victim
+			const victim = attendeesAtTime!.values().next().value!;
+			const victimState = state.participantStates.find(
+				(ps) => ps.participant.id === victim.id
+			);
+			if (!victimState) {
+				console.log(
+					`Could not find other user state in room ${availableRoom} at ${time} for id ${victim.id}`
+				);
+				continue;
+			}
+			if (removeParticipantFromRoom(victimState, time, availableRoom, state)) {
+				attendeesAtTime!.add(pState.participant);
+				pState.assignments.set(time, availableRoom);
+				pState.unvisitedTopics.delete(topic);
+				return {
+					requeue: true,
+					entry: {
+						participantState: victimState,
+						missedTopicCount: victimState.unvisitedTopics.size,
+					},
+				};
+			}
 		}
 	}
 };
 
-const tryReassignment = (pState: ParticipantState, time: string, state: AssignmentState): void => {
-	const unvisitedTopics = Array.from(pState.unvisitedTopics);
-	shuffleArray(unvisitedTopics);
-	assignParticipantToRoom(pState, time, unvisitedTopics, state);
-};
-
-const processNextAnnealingEntry = (
+const annealUnusedParticipantSlot = (
 	entry: AnnealingEntry,
 	state: AssignmentState
 ): AnnealingResult => {
@@ -313,25 +349,15 @@ const processNextAnnealingEntry = (
 	const initialMissedCount = pState.unvisitedTopics.size;
 
 	// Process each time slot
-	state.timeSlots.forEach((time) => {
+	for (const time of state.timeSlots) {
 		const currentRoom = pState.assignments.get(time);
-		if (currentRoom === 'FREE') return;
-
-		if (currentRoom) {
-			removeParticipantFromRoom(pState, time, currentRoom, state);
-		}
-
-		tryReassignment(pState, time, state);
-	});
-
-	// Evaluate improvement
-	const newMissedCount = pState.unvisitedTopics.size;
+		if (currentRoom !== 'FREE') continue;
+		const newEntry = tryReassignment(pState, time, state);
+	}
+	// found no victim to swap with
 	return {
-		requeue: newMissedCount < initialMissedCount && newMissedCount > 0,
-		entry: {
-			participantState: pState,
-			missedTopicCount: newMissedCount,
-		},
+		requeue: false,
+		entry,
 	};
 };
 
@@ -499,12 +525,11 @@ export const renderDanceCardTable = (
 	danceCards: ParticipantDanceCard[],
 	events: EventData[]
 ): void => {
-	const danceCardContainer = document.querySelector('.dance-card-container');
-	if (!danceCardContainer) return;
-
-	// Preserve the button
-	const button = document.getElementById('dance-card-button');
-	const buttonHint = document.getElementById('button-hint');
+	const danceCardContainer = document.querySelector('#dance-card-container');
+	if (!danceCardContainer) {
+		console.error('Dance card container not found');
+		return;
+	}
 
 	const timeSlots = [...new Set(events.map((e) => e.time))].sort();
 
@@ -546,8 +571,6 @@ export const renderDanceCardTable = (
 	}
 
 	// Clear container while preserving the button
-	danceCardContainer.innerHTML = '';
-	if (button) danceCardContainer.appendChild(button);
-	if (buttonHint) danceCardContainer.appendChild(buttonHint);
+	danceCardContainer.querySelector('.dance-card-results')?.remove();
 	danceCardContainer.appendChild(resultsContainer);
 };
