@@ -156,8 +156,13 @@ const setupAssignmentState = (
 const performFirstAssignmentPhase = (state: AssignmentState): AssignmentState => {
 	const newState = structuredClone(state);
 
-	for (const time of state.timeSlots) {
-		newState.participantStates = shuffleArray(newState.participantStates);
+	// Process participants time slot by time slot
+	for (const time of newState.timeSlots) {
+		// Sort participants by number of unassigned topics (descending) and then by ID
+		newState.participantStates.sort((a, b) => {
+			const topicDiff = b.unvisitedTopics.size - a.unvisitedTopics.size;
+			return topicDiff !== 0 ? topicDiff : a.participant.id.localeCompare(b.participant.id);
+		});
 
 		for (const pState of newState.participantStates) {
 			if (pState.assignments.has(time)) continue;
@@ -497,6 +502,10 @@ export const renderDanceCardTable = (
 	const danceCardContainer = document.querySelector('.dance-card-container');
 	if (!danceCardContainer) return;
 
+	// Preserve the button
+	const button = document.getElementById('dance-card-button');
+	const buttonHint = document.getElementById('button-hint');
+
 	const timeSlots = [...new Set(events.map((e) => e.time))].sort();
 
 	// Create main container
@@ -536,7 +545,9 @@ export const renderDanceCardTable = (
 		resultsContainer.appendChild(createMissedTopicsTable(participantsWithMissedTopics));
 	}
 
-	// Clear and update container
+	// Clear container while preserving the button
 	danceCardContainer.innerHTML = '';
+	if (button) danceCardContainer.appendChild(button);
+	if (buttonHint) danceCardContainer.appendChild(buttonHint);
 	danceCardContainer.appendChild(resultsContainer);
 };

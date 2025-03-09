@@ -1,6 +1,9 @@
 // Test file for dance card generation
+import fs from 'fs';
+import path from 'path';
 import { describe, expect, it } from 'vitest';
 import { generateDanceCards } from '../dancecard';
+import { parseEventsCSV, parseParticipantsCSV, parseRoomCapacityCSV } from '../parsecsv';
 import { EventData, Participant, RoomCapacity } from '../types';
 
 describe('Dance Card Generation Algorithm', () => {
@@ -96,5 +99,80 @@ describe('Dance Card Generation Algorithm', () => {
 				}
 			});
 		});
+	});
+});
+
+describe('Dance Card Generation with Sample Data', () => {
+	it('should properly utilize room capacity with sample data', () => {
+		// Load and parse sample files
+		const participantsCSV = fs.readFileSync(
+			path.join(__dirname, '../assets/sample.csv'),
+			'utf-8'
+		);
+		const eventsCSV = fs.readFileSync(
+			path.join(__dirname, '../assets/events-sample.csv'),
+			'utf-8'
+		);
+		const roomCapacityCSV = fs.readFileSync(
+			path.join(__dirname, '../assets/room-capacity-sample.csv'),
+			'utf-8'
+		);
+
+		const participants = parseParticipantsCSV(participantsCSV);
+		const events = parseEventsCSV(eventsCSV);
+		const roomCapacities = parseRoomCapacityCSV(roomCapacityCSV);
+
+		// Generate dance cards
+		const danceCards = generateDanceCards(participants, events, roomCapacities);
+
+		// Get first time slot from events
+		const firstTimeSlot = events[0].time;
+
+		// Count total room capacity
+		const totalRoomCapacity = roomCapacities.reduce((sum, rc) => sum + rc.capacity, 0);
+
+		// Count participants in each room for the first time slot
+		const roomOccupancy = new Map<string, number>();
+		let totalAssignedParticipants = 0;
+		let unassignedParticipants = 0;
+
+		// Initialize room occupancy counters
+		roomCapacities.forEach((rc) => {
+			roomOccupancy.set(rc.room, 0);
+		});
+
+		// Count participants in each room
+		danceCards.forEach((card) => {
+			const assignment = card.assignments.get(firstTimeSlot);
+			if (assignment !== 'FREE' && assignment !== undefined) {
+				const currentCount = roomOccupancy.get(assignment.room) || 0;
+				roomOccupancy.set(assignment.room, currentCount + 1);
+				totalAssignedParticipants++;
+			} else {
+				unassignedParticipants++;
+			}
+		});
+
+		// Log assignments for debugging
+		console.log('\nAssignment statistics for first time slot:');
+		console.log(`Total participants: ${participants.length}`);
+		console.log(`Total room capacity: ${totalRoomCapacity}`);
+		console.log(`Assigned participants: ${totalAssignedParticipants}`);
+		console.log(`Unassigned participants: ${unassignedParticipants}`);
+
+		// Verify that either:
+		// 1. All participants are assigned (when total capacity >= participant count)
+		// 2. All room capacity is used (when participant count > total capacity)
+		if (totalRoomCapacity >= participants.length) {
+			expect(
+				totalAssignedParticipants,
+				`Expected all ${participants.length} participants to be assigned, but only ${totalAssignedParticipants} were assigned`
+			).toBe(participants.length);
+		} else {
+			expect(
+				totalAssignedParticipants,
+				`Expected rooms to be filled to capacity (${totalRoomCapacity}), but only ${totalAssignedParticipants} participants were assigned`
+			).toBe(totalRoomCapacity);
+		}
 	});
 });

@@ -29,6 +29,18 @@ export const displayParticipants = (
 	const table = document.createElement('table');
 	table.innerHTML = createParticipantTableHeader();
 
+	// Create and populate tbody
+	const tbody = document.createElement('tbody');
+	participants.forEach((participant) => {
+		const row = document.createElement('tr');
+		row.innerHTML = `
+			<td>${participant.id}</td>
+			<td>${participant.name}</td>
+		`;
+		tbody.appendChild(row);
+	});
+	table.appendChild(tbody);
+
 	// Clear and append both elements
 	participantList.innerHTML = '';
 	participantList.appendChild(summary);
@@ -75,16 +87,46 @@ export const displayEvents = (
 	// Create summary element showing distinct topics/rooms
 	const summary = document.createElement('div');
 	summary.className = 'data-summary';
-	summary.innerHTML = `<p><strong>${groupedEvents.length}</strong> distinct topic${groupedEvents.length === 1 ? '' : 's'} and room${groupedEvents.length === 1 ? '' : 's'} loaded</p>`;
+	summary.innerHTML = `<p><strong>${groupedEvents.length}</strong> distinct topic${
+		groupedEvents.length === 1 ? '' : 's'
+	} and room${groupedEvents.length === 1 ? '' : 's'} loaded</p>`;
 
 	// Create table for grouped events
 	const table = document.createElement('table');
 	table.innerHTML = createEventsTableHeader();
 
-	// Create a second table for the original event listing by time
-	const timeTable = document.createElement('div');
+	// Create and populate tbody for grouped events
+	const tbody = document.createElement('tbody');
+	groupedEvents.forEach((event) => {
+		const row = document.createElement('tr');
+		row.innerHTML = `
+			<td>${event.topic}</td>
+			<td>${event.room}</td>
+			<td>${event.times.sort().join(', ')}</td>
+		`;
+		tbody.appendChild(row);
+	});
+	table.appendChild(tbody);
+
+	// Create time schedule table
+	const timeTable = document.createElement('table');
 	timeTable.className = 'time-schedule';
 	timeTable.innerHTML = createTimeScheduleHeader();
+
+	// Create and populate tbody for time schedule
+	const timeTableBody = document.createElement('tbody');
+	events
+		.sort((a, b) => a.time.localeCompare(b.time))
+		.forEach((event) => {
+			const row = document.createElement('tr');
+			row.innerHTML = `
+			<td>${event.time}</td>
+			<td>${event.topic}</td>
+			<td>${event.room}</td>
+		`;
+			timeTableBody.appendChild(row);
+		});
+	timeTable.appendChild(timeTableBody);
 
 	// Clear and append all elements
 	eventsList.innerHTML = '';
@@ -112,11 +154,27 @@ export const displayRoomCapacities = (
 	// Create summary element showing count
 	const summary = document.createElement('div');
 	summary.className = 'data-summary';
-	summary.innerHTML = `<p><strong>${roomCapacities.length}</strong> room${roomCapacities.length === 1 ? '' : 's'} loaded</p>`;
+	summary.innerHTML = `<p><strong>${roomCapacities.length}</strong> room${
+		roomCapacities.length === 1 ? '' : 's'
+	} loaded</p>`;
 
 	// Create table for room capacities, sorted by room name
 	const table = document.createElement('table');
 	table.innerHTML = createRoomCapacityTableHeader();
+
+	// Create and populate tbody
+	const tbody = document.createElement('tbody');
+	roomCapacities
+		.sort((a, b) => a.room.localeCompare(b.room))
+		.forEach((capacity) => {
+			const row = document.createElement('tr');
+			row.innerHTML = `
+			<td>${capacity.room}</td>
+			<td>${capacity.capacity}</td>
+		`;
+			tbody.appendChild(row);
+		});
+	table.appendChild(tbody);
 
 	// Clear and append both elements
 	roomCapacityList.innerHTML = '';

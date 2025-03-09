@@ -79,10 +79,8 @@ const handleFileContent = (
 		// Reset dance card data as data has changed
 		resetDanceCardData();
 
-		// Validate event rooms if we're handling events
-		if (config.errorElementId === ElementId.EVENTS_ERROR) {
-			validateEventRooms();
-		}
+		// Clear any existing dance card results
+		clearDanceCardResults();
 
 		// Display the data
 		config.displayFunction();
@@ -105,24 +103,11 @@ const getMissingDataTypes = (): string[] => {
 	return missing;
 };
 
-const updateButtonState = (): void => {
-	const button = document.getElementById(ElementId.DANCE_CARD_BUTTON) as HTMLButtonElement;
-	if (!button) return;
+const validateEventRooms = (): string[] => {
+	if (events.length === 0 || roomCapacities.length === 0) {
+		return [];
+	}
 
-	const missing = getMissingDataTypes();
-	const isEnabled = missing.length === 0;
-
-	button.disabled = !isEnabled;
-	button.title = ButtonStates.DISABLED_FORMAT(missing);
-};
-
-// Main button update function
-const updateDanceCardButton = (): void => {
-	updateButtonState();
-};
-
-// Validation function to ensure events only use rooms that exist in room capacities
-const validateEventRooms = (): void => {
 	const validRooms = new Set(roomCapacities.map((rc) => rc.room));
 	const invalidRooms = new Set<string>();
 
@@ -132,12 +117,49 @@ const validateEventRooms = (): void => {
 		}
 	});
 
-	if (invalidRooms.size > 0) {
-		const invalidRoomsList = Array.from(invalidRooms).join(', ');
-		throw new Error(
-			`Events contain rooms that are not defined in room capacities: ${invalidRoomsList}`
-		);
+	return Array.from(invalidRooms);
+};
+
+const updateButtonState = (): void => {
+	const button = document.getElementById(ElementId.DANCE_CARD_BUTTON) as HTMLButtonElement;
+	const buttonHint = document.getElementById('button-hint');
+	if (!button) return;
+
+	const missing = getMissingDataTypes();
+	const invalidRooms = validateEventRooms();
+
+	if (invalidRooms.length > 0) {
+		button.disabled = true;
+		button.classList.add('button-disabled');
+		button.title = `Events contain rooms that are not defined in room capacities: ${invalidRooms.join(', ')}`;
+		if (buttonHint) {
+			buttonHint.textContent = `Invalid rooms: ${invalidRooms.join(', ')}`;
+		}
+		// Optionally show this error in the events error section
+		const eventsError = document.getElementById(ElementId.EVENTS_ERROR);
+		if (eventsError) {
+			eventsError.textContent = `Invalid rooms: ${invalidRooms.join(', ')}`;
+		}
+		return;
 	}
+
+	const isEnabled = missing.length === 0;
+	button.disabled = !isEnabled;
+	button.classList.toggle('button-disabled', !isEnabled);
+	button.title = isEnabled ? '' : ButtonStates.DISABLED_FORMAT(missing);
+
+	if (buttonHint) {
+		if (isEnabled) {
+			buttonHint.textContent = ''; // Clear the hint when enabled
+		} else {
+			buttonHint.textContent = ButtonStates.DISABLED_FORMAT(missing);
+		}
+	}
+};
+
+// Main button update function
+const updateDanceCardButton = (): void => {
+	updateButtonState();
 };
 
 // Initialize file handlers
