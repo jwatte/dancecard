@@ -1,29 +1,88 @@
-import { ElementId } from './constants';
-
 // Main app structure
 export const createAppStructure = (): string => `
-    <div id="${ElementId.APP}">
-        <div class="upload-section">
-            <input type="file" id="${ElementId.PARTICIPANTS_UPLOAD}" accept=".csv">
-            <div id="${ElementId.PARTICIPANTS_ERROR}" class="error-message"></div>
-            <div id="${ElementId.PARTICIPANT_LIST}" class="data-list"></div>
-        </div>
-        
-        <div class="upload-section">
-            <input type="file" id="${ElementId.EVENTS_UPLOAD}" accept=".csv">
-            <div id="${ElementId.EVENTS_ERROR}" class="error-message"></div>
-            <div id="${ElementId.EVENTS_LIST}" class="data-list"></div>
-        </div>
+		<!-- Dance Cards button section -->
+		<div class="dance-card-container">
+			<button id="dance-card-button" class="dance-card-button button-disabled" disabled>Dance Cards</button>
+			<p id="button-hint" class="button-hint">Upload all CSV files to enable</p>
+		</div>
 
-        <div class="upload-section">
-            <input type="file" id="${ElementId.ROOM_CAPACITIES_UPLOAD}" accept=".csv">
-            <div id="${ElementId.ROOM_CAPACITIES_ERROR}" class="error-message"></div>
-            <div id="${ElementId.ROOM_CAPACITY_LIST}" class="data-list"></div>
-        </div>
+		<!-- File upload section -->
+		<div class="grid-container grid-container-3col">
+			<!-- Left column: Participants upload -->
+			<div class="grid-item csv-upload">
+				<div class="upload-section">
+					<h2>Upload Participants</h2>
+					<p>Select a CSV file with ID and Name columns:</p>
+					<div class="file-input-container">
+						<input type="file" id="participants-upload" accept=".csv,text/csv" />
+						<label for="participants-upload">Choose File</label>
+						<div id="participants-error" class="file-error"></div>
+					</div>
+					<p class="hint">CSV format requires ID and Name columns.</p>
+					<div class="file-actions">
+						<a href="sample.csv" download="sample.csv" class="download-link">Download Sample CSV</a>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Middle column: Events upload -->
+			<div class="grid-item csv-upload">
+				<div class="upload-section">
+					<h2>Upload Events</h2>
+					<p>Select a CSV file with Time, Topic, and Room columns:</p>
+					<div class="file-input-container">
+						<input type="file" id="events-upload" accept=".csv,text/csv" />
+						<label for="events-upload">Choose File</label>
+						<div id="events-error" class="file-error"></div>
+					</div>
+					<p class="hint">CSV format requires Time, Topic, and Room columns.</p>
+					<div class="file-actions">
+						<a href="events-sample.csv" download="events-sample.csv" class="download-link">Download Sample CSV</a>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Right column: Room Capacity upload -->
+			<div class="grid-item csv-upload">
+				<div class="upload-section">
+					<h2>Upload Room Capacity</h2>
+					<p>Select a CSV file with Room and Capacity columns:</p>
+					<div class="file-input-container">
+						<input type="file" id="room-capacity-upload" accept=".csv,text/csv" />
+						<label for="room-capacity-upload">Choose File</label>
+						<div id="room-capacity-error" class="file-error"></div>
+					</div>
+					<p class="hint">CSV format requires Room and Capacity columns. Capacity must be 1-999.</p>
+					<div class="file-actions">
+							<a href="room-capacity-sample.csv" download="room-capacity-sample.csv" class="download-link">Download Sample CSV</a>
+					</div>
+                </div>
+			</div>
+		</div>
 
-        <button id="${ElementId.DANCE_CARD_BUTTON}">Generate Dance Cards</button>
-        <div id="${ElementId.DANCE_CARD_CONTAINER}" class="dance-card-container"></div>
-    </div>`;
+		<!-- Data display section -->
+		<div class="grid-container grid-container-3col">
+			<!-- Left column: Participants display -->
+			<div class="grid-item">
+					<div id="participant-list" class="data-list">
+							<p>No participants loaded. Please upload a CSV file.</p>
+					</div>
+			</div>
+
+			<!-- Middle column: Events display -->
+			<div class="grid-item">
+					<div id="events-list" class="data-list">
+							<p>No events loaded. Please upload a CSV file.</p>
+					</div>
+			</div>
+
+			<!-- Right column: Room Capacity display -->
+			<div class="grid-item">
+					<div id="room-capacity-list" class="data-list">
+							<p>No room capacities loaded. Please upload a CSV file.</p>
+					</div>
+			</div>
+		</div>`;
 
 // Help content template
 export const createHelpContent = (): string => `

@@ -209,6 +209,7 @@ const handleDanceCardClick = (): void => {
 const initApp = (): void => {
 	const appElement = document.getElementById(ElementId.APP);
 	if (appElement) {
+		// This was the problem - we're setting innerHTML of the app element itself
 		appElement.innerHTML = createAppStructure();
 	}
 
